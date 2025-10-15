@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人工智能学院学生会请假系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 100%;
+            width: 100%;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #444;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s, box-shadow 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+            outline: none;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .qrcode-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .instructions {
+            background-color: #fff8e1;
+            border-left: 4px solid #f39c12;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .instructions h3 {
+            margin-bottom: 8px;
+            color: #e67e22;
+        }
+        .instructions p {
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        .leave-slip {
+            background: white;
+            border: 2px solid #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .leave-slip h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .leave-info {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #ddd;
+        }
+        .leave-info strong {
+            display: inline-block;
+            width: 80px;
+            color: #555;
+        }
+        .stamp-area {
+            text-align: right;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .stamp {
+            display: inline-block;
+            border: 2px solid #e74c3c;
+            color: #e74c3c;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            transform: rotate(10deg);
+        }
+        .screenshot-btn {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+        }
+        .success-message {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>人工智能学院学生会请假系统</h1>
+        
+        <div class="instructions">
+            <h3>使用说明</h3>
+            <p>1. 填写完整的请假申请信息</p>
+            <p>2. 点击"生成请假条"按钮</p>
+            <p>3. 截图保存生成的请假条图片</p>
+            <p>4. 将图片发送给部门负责人</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="name">姓名</label>
+            <input type="text" id="name" placeholder="请输入您的姓名">
+            <div class="error" id="nameError">请输入姓名</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="studentId">学号</label>
+            <input type="text" id="studentId" placeholder="请输入8位学号" maxlength="8">
+            <div class="error" id="studentIdError">请输入8位数字学号</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">联系手机</label>
+            <input type="text" id="phone" placeholder="请输入11位手机号码" maxlength="11">
+            <div class="error" id="phoneError">请输入正确的手机号码</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="department">部门</label>
+            <select id="department">
+                <option value="">请选择部门</option>
+                <option value="办公室">办公室</option>
+                <option value="组织部">组织部</option>
+                <option value="文体部">文体部</option>
+                <option value="纪检部">纪检部</option>
+                <option value="主持团">主持团</option>
+                <option value="宣传部">宣传部</option>
+                <option value="信息媒体部">信息媒体部</option>
+                <option value="主席团">主席团</option>
+                <option value="礼仪部">礼仪部</option>
+            </select>
+            <div class="error" id="departmentError">请选择部门</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="leaveType">请假类型</label>
+            <select id="leaveType">
+                <option value="">请选择请假类型</option>
+                <option value="病假">病假</option>
+                <option value="事假">事假</option>
+                <option value="公假">公假</option>
+                <option value="其他">其他</option>
+            </select>
+            <div class="error" id="leaveTypeError">请选择请假类型</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="startDate">开始时间</label>
+            <input type="datetime-local" id="startDate">
+            <div class="error" id="startDateError">请选择开始时间</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="endDate">结束时间</label>
+            <input type="datetime-local" id="endDate">
+            <div class="error" id="endDateError">请选择结束时间</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="reason">请假原因</label>
+            <textarea id="reason" placeholder="请详细说明请假原因"></textarea>
+            <div class="error" id="reasonError">请输入请假原因</div>
+        </div>
+        
+        <button id="generateBtn">生成请假条</button>
+    </div>
+    
+    <div class="leave-slip" id="leaveSlip">
+        <h2>人工智能学院学生会请假条</h2>
+        
+        <div class="leave-info">
+            <strong>姓名：</strong> <span id="slipName"></span>
+        </div>
+        
+        <div class="leave-info">
+            <strong>学号：</strong> <span id="slipStudentId"></span>
+        </div>
+        
+        <div class="leave-info">
+            <strong>手机：</strong> <span id="slipPhone"></span>
+        </div>
+        
+        <div class="leave-info">
+            <strong>部门：</strong> <span id="slipDepartment"></span>
+        </div>
+        
+        <div class="leave-info">
+            <strong>请假类型：</strong> <span id="slipLeaveType"></span>
+        </div>
+        
+        <div class="leave-info">
+            <strong>开始时间：</strong> <span id="slipStartDate"></span>
+        </div>
+        
+        <div class="leave-info">
+            <strong>结束时间：</strong> <span id="slipEndDate"></span>
+        </div>
+        
+        <div class="leave-info">
+            <strong>请假原因：</strong> <span id="slipReason"></span>
+        </div>
+        
+        <div class="leave-info">
+            <strong>申请时间：</strong> <span id="slipSubmitTime"></span>
+        </div>
+        
+        <div class="stamp-area">
+            <div class="stamp">待审批</div>
+        </div>
+    </div>
+    
+    <div class="success-message" id="successMessage">
+        <h3>请假条生成成功！</h3>
+        <p>请截图保存请假条图片，并发送给您的部门负责人。</p>
+    </div>
+    
+    <button class="screenshot-btn" id="screenshotBtn" style="display: none;">截图保存请假条</button>
+    
+    <div class="qrcode-container">
+        <h3>手机扫码填写请假条</h3>
+        <p>使用手机扫描下方二维码，直接填写请假信息</p>
+        <div id="qrcode"></div>
+        <p>扫描后填写信息，生成请假条并截图发送给负责人</p>
+    </div>
+
+    <script>
+        // 生成二维码
+        document.addEventListener('DOMContentLoaded', function() {
+            // 生成当前页面的二维码
+            const currentUrl = window.location.href;
+            QRCode.toCanvas(document.getElementById('qrcode'), currentUrl, function(error) {
+                if (error) console.error(error);
+            });
+            
+            // 设置默认日期时间为当前时间
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            const currentDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('startDate').value = currentDateTime;
+            
+            // 设置结束时间为1小时后
+            const endTime = new Date(now.getTime() + 60 * 60 * 1000);
+            const endYear = endTime.getFullYear();
+            const endMonth = String(endTime.getMonth() + 1).padStart(2, '0');
+            const endDay = String(endTime.getDate()).padStart(2, '0');
+            const endHours = String(endTime.getHours()).padStart(2, '0');
+            const endMinutes = String(endTime.getMinutes()).padStart(2, '0');
+            
+            const endDateTime = `${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}`;
+            document.getElementById('endDate').value = endDateTime;
+        });
+        
+        // 验证学号格式
+        document.getElementById('studentId').addEventListener('input', function() {
+            const studentId = this.value;
+            const errorElement = document.getElementById('studentIdError');
+            
+            if (studentId.length !== 8 || !/^\d+$/.test(studentId)) {
+                errorElement.style.display = 'block';
+            } else {
+                errorElement.style.display = 'none';
+            }
+        });
+        
+        // 验证手机号码格式
+        document.getElementById('phone').addEventListener('input', function() {
+            const phone = this.value;
+            const errorElement = document.getElementById('phoneError');
+            
+            if (phone.length !== 11 || !/^\d+$/.test(phone)) {
+                errorElement.style.display = 'block';
+            } else {
+                errorElement.style.display = 'none';
+            }
+        });
+        
+        // 生成请假条
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            const name = document.getElementById('name').value;
+            const studentId = document.getElementById('studentId').value;
+            const phone = document.getElementById('phone').value;
+            const department = document.getElementById('department').value;
+            const leaveType = document.getElementById('leaveType').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const reason = document.getElementById('reason').value;
+            
+            // 验证表单
+            let isValid = true;
+            
+            if (!name) {
+                document.getElementById('nameError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('nameError').style.display = 'none';
+            }
+            
+            if (studentId.length !== 8 || !/^\d+$/.test(studentId)) {
+                document.getElementById('studentIdError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('studentIdError').style.display = 'none';
+            }
+            
+            if (phone.length !== 11 || !/^\d+$/.test(phone)) {
+                document.getElementById('phoneError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('phoneError').style.display = 'none';
+            }
+            
+            if (!department) {
+                document.getElementById('departmentError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('departmentError').style.display = 'none';
+            }
+            
+            if (!leaveType) {
+                document.getElementById('leaveTypeError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('leaveTypeError').style.display = 'none';
+            }
+            
+            if (!startDate) {
+                document.getElementById('startDateError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('startDateError').style.display = 'none';
+            }
+            
+            if (!endDate) {
+                document.getElementById('endDateError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('endDateError').style.display = 'none';
+            }
+            
+            if (!reason) {
+                document.getElementById('reasonError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('reasonError').style.display = 'none';
+            }
+            
+            if (!isValid) {
+                alert('请填写所有必填字段并确保格式正确！');
+                return;
+            }
+            
+            // 格式化日期时间显示
+            const formatDateTime = (dateTimeStr) => {
+                const date = new Date(dateTimeStr);
+                return `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            };
+            
+            // 填充请假条内容
+            document.getElementById('slipName').textContent = name;
+            document.getElementById('slipStudentId').textContent = studentId;
+            document.getElementById('slipPhone').textContent = phone;
+            document.getElementById('slipDepartment').textContent = department;
+            document.getElementById('slipLeaveType').textContent = leaveType;
+            document.getElementById('slipStartDate').textContent = formatDateTime(startDate);
+            document.getElementById('slipEndDate').textContent = formatDateTime(endDate);
+            document.getElementById('slipReason').textContent = reason;
+            document.getElementById('slipSubmitTime').textContent = new Date().toLocaleString();
+            
+            // 显示请假条和成功消息
+            document.getElementById('leaveSlip').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('screenshotBtn').style.display = 'block';
+            
+            // 滚动到请假条位置
+            document.getElementById('leaveSlip').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // 截图功能
+        document.getElementById('screenshotBtn').addEventListener('click', function() {
+            html2canvas(document.getElementById('leaveSlip')).then(function(canvas) {
+                // 将canvas转换为图片
+                const imgData = canvas.toDataURL('image/png');
+                
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = '请假条.png';
+                link.href = imgData;
+                
+                // 触发下载
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                alert('请假条已保存为图片，请发送给部门负责人。');
+            });
+        });
+    </script>
+</body>
+</html>
